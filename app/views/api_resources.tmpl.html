@@ -1,32 +1,59 @@
-<div id="raml-console-api-reference" role="resources">
-  <div class="toggle-resource-groups">
-    <a ng-click='apiResources.toggleAll(false)' role="expand-all">Expand</a>
-    <span>/</span>
-    <a ng-click='apiResources.toggleAll(true)' role="collapse-all">Collapse</a>
-    <span>All</span>
-  </div>
+<ol class="resource-list resource-list-root" id="raml-console-api-reference" role="resources">
+  <li role="resource-group" class="resource-list-item" ng-repeat="resourceGroup in api.resourceGroups">
+    <header class="resource resource-root clearfix" ng-init="resource = resourceGroup[0]">
+      <div class="resource-path-container">
+        <button class="resource-root-toggle" ng-show="resourceGroup.length > 1">
+          <span class="visuallyhidden">See Nested Resources</span>
+        </button>
 
-  <div collapsible collapsed='apiResources.collapsed[apiResources.keyFor(resourceGroup)]' role="resource-group" class="resource-group" ng-repeat="resourceGroup in api.resourceGroups">
-    <i collapsible-toggle class="fa" ng-class="{'fa-caret-right': collapsed, 'fa-caret-down': !collapsed}"></i>
+        <h2 class="resource-heading resource-heading-large">
+          <span ng-repeat='segment in resource.pathSegments' class="resource-path-active">{{segment.toString()}}</span>
+        </h2>
 
-    <div collapsible-toggle class="resource" role="resource-group-placeholder" ng-show="collapsed" ng-init="resource = resourceGroup[0]">
-      <div class="resource-placeholder" role="resource-placeholder">
-        <div class="resource-container">
-          <div class='resource'>
-            <div>
-              <div class='summary accordion-toggle'>
-                <h3 class="path">
-                  <span ng-repeat='segment in resource.pathSegments'>{{segment.toString()}} </span>
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
+        <span ng-if='resource.resourceType' class="flag resource-heading-flag resource-heading-flag-root"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>
       </div>
-    </div>
 
-    <div collapsible-content>
-      <resource ng-repeat="resource in resourceGroup"></resource>
-    </div>
-  </div>
-</div>
+      <div class="tab-list">
+        <a class="tab" href="#" ng-repeat="method in resource.methods">
+          <svg class="tab-image tab-{{method.method}}">
+            <use xlink:href="img/tab.svg#shape"></use>
+          </svg>
+
+          <span class="tab-label">{{method.method.toUpperCase()}}</span>
+        </a>
+      </div>
+
+      <button class="resource-close-btn">
+        Close
+      </button>
+    </header>
+
+    <ol class="resource-list">
+      <li class="resource-list-item" ng-repeat="resource in resourceGroup" ng-show="!$first">
+        <div class="resource clearfix">
+          <div class="resource-path-container">
+            <h3 class="resource-heading">
+              <span ng-repeat='segment in resource.pathSegments' ng-class="{'resource-path-active':$last}">{{segment.toString()}}</span>
+            </h3>
+
+            <span class="flag resource-heading-flag"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>
+          </div>
+
+          <div class="tab-list">
+            <a class="tab" href="#" ng-repeat="method in resource.methods">
+              <svg class="tab-image tab-{{method.method}}">
+                <use xlink:href="img/tab.svg#shape"></use>
+              </svg>
+
+              <span class="tab-label">{{method.method.toUpperCase()}}</span>
+            </a>
+          </div>
+
+          <button class="resource-close-btn">
+            Close
+          </button>
+        </div>
+      </li>
+    </ol>
+  </li>
+</ol>
