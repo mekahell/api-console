@@ -14,7 +14,7 @@
       </div>
 
       <div class="tab-list">
-        <a class="tab" href="#" ng-repeat="method in resource.methods">
+        <a class="tab" href="#" ng-repeat="method in resource.methods" ng-click="resourceView.openDocumentation($event, method)">
           <svg class="tab-image tab-{{method.method}}">
             <use xlink:href="img/tab.svg#shape"></use>
           </svg>
@@ -28,32 +28,10 @@
       </button>
     </header>
 
+    <resource-documentation api="api" raml-console="ramlConsole"></resource-documentation>
+
     <ol class="resource-list">
-      <li class="resource-list-item" ng-repeat="resource in resourceGroup" ng-show="!$first">
-        <div class="resource clearfix">
-          <div class="resource-path-container">
-            <h3 class="resource-heading">
-              <span ng-repeat='segment in resource.pathSegments' ng-class="{'resource-path-active':$last}">{{segment.toString()}}</span>
-            </h3>
-
-            <span class="flag resource-heading-flag"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>
-          </div>
-
-          <div class="tab-list">
-            <a class="tab" href="#" ng-repeat="method in resource.methods">
-              <svg class="tab-image tab-{{method.method}}">
-                <use xlink:href="img/tab.svg#shape"></use>
-              </svg>
-
-              <span class="tab-label">{{method.method.toUpperCase()}}</span>
-            </a>
-          </div>
-
-          <button class="resource-close-btn">
-            Close
-          </button>
-        </div>
-      </li>
+      <resource ng-repeat="resource in resourceGroup" ng-show="!$first"></resource>
     </ol>
   </li>
 </ol>

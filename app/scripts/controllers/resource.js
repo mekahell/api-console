@@ -17,7 +17,9 @@
     this.openDocumentation = function($event, method) {
       $event.stopPropagation();
 
-      this.expanded || this.toggleExpansion();
+      // this.expanded || this.toggleExpansion();
+      angular.element($event.currentTarget).addClass('is-active');
+      console.log('emit:console:expand');
       $scope.$emit('console:expand', $scope.resource, method, $element);
     };
 

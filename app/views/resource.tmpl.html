@@ -1,37 +1,26 @@
-<div class="resource-placeholder" role="resource-placeholder">
-  <div class="resource-container">
-    <div ng-class="{expanded: resourceView.expanded || selectedMethod}" class='resource' role="resource" ng-click='resourceView.toggleExpansion()'>
-      <div>
-        <div class='summary accordion-toggle' role='resource-summary'>
-          <div class="modifiers" ng-class="{expanded: selectedMethod}" ng-show='resourceView.expanded || selectedMethod'>
-            <span class="modifier-group" ng-if='resource.resourceType'>
-              <span class="caption">Type:</span>
-              <ul>
-                <li class="resource-type" role="resource-type" ng-bind="resource.resourceType|nameFromParameterizable"></li>
-              </ul>
-            </span>
-            <span class="modifier-group" ng-if='resource.traits.length > 0'>
-              <span class="caption">Traits:</span>
-              <ul>
-                <li class="trait" ng-show='resourceView.expanded' role="trait" ng-repeat="trait in resource.traits" ng-bind="trait|nameFromParameterizable"></li>
-              </ul>
-            </span>
-          </div>
+<li class="resource-list-item">
+  <div class="resource clearfix">
+    <div class="resource-path-container">
+      <h3 class="resource-heading">
+        <span ng-repeat='segment in resource.pathSegments' ng-class="{'resource-path-active':$last}">{{segment.toString()}}</span>
+      </h3>
 
-          <h3 class="path">
-            <span role='segment' ng-repeat='segment in resource.pathSegments'>{{segment.toString()}} </span>
-          </h3>
-          <ul class='methods' role="methods" ng-if="resource.methods">
-            <li class='method-name' ng-class='method.method' ng-click="resourceView.openDocumentation($event, method)" ng-repeat="method in resource.methods">{{method.method}}</li>
-          </ul>
-        </div>
-      </div>
-
-      <div role='description'
-           class='description'
-           ng-show='resourceView.expanded && resource.description'
-           markdown='resource.description'>
-      </div>
+      <span class="flag resource-heading-flag"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>
     </div>
+
+    <div class="tab-list">
+      <a class="tab" href="#" ng-click="resourceView.openDocumentation($event, method)" ng-repeat="method in resource.methods">
+        <svg class="tab-image tab-{{method.method}}">
+          <use xlink:href="img/tab.svg#shape"></use>
+        </svg>
+
+        <span class="tab-label">{{method.method.toUpperCase()}}</span>
+      </a>
+    </div>
+
+    <button class="resource-close-btn">
+      Close
+    </button>
   </div>
-</div>
+  <resource-documentation api="api" raml-console="ramlConsole"></resource-documentation>
+</li>

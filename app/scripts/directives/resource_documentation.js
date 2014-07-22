@@ -21,6 +21,7 @@
 
     return {
       open: function($scope, $resourceEl, resource, method) {
+        console.log('popover');
         $scope.resource = resource;
 
         consoleContainer.css('overflow', 'hidden');
@@ -120,7 +121,21 @@
       });
 
       $rootScope.$on('console:expand', function(event, resource, method, $resourceEl) {
-        prepare($scope, $element, $resourceEl, resource, method);
+        console.log('on:console:expand');
+
+        var $resourcePanel = angular.element($resourceEl[0].querySelector('.resource-panel'));
+
+        $resourcePanel.css('overflow', 'visible');
+        $resourcePanel.css('display', 'block');
+        $resourcePanel.css('height', 'auto');
+        $resourcePanel.css('margin-top', '0px');
+        $resourcePanel.css('margin-bottom', '0px');
+        $resourcePanel.css('padding-top', '0px');
+        $resourcePanel.css('padding-bottom', '0px');
+
+        angular.element($resourceEl[0]).addClass('is-active');
+        angular.element($resourceEl[0].querySelector('div.resource')).addClass('is-active');
+        // prepare($scope, $element, $resourceEl, resource, method);
       });
 
     }
@@ -131,7 +146,8 @@
       controller: Controller,
       scope: {
         api: '=',
-        ramlConsole: '='
+        ramlConsole: '=',
+        ngShow: '='
       }
     };
   };
