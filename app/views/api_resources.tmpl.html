@@ -14,7 +14,7 @@
       </div>
 
       <div class="tab-list">
-        <a class="tab" href="#" ng-repeat="method in resource.methods" ng-click="resourceView.openDocumentation($event, method)">
+        <a class="tab" href="#" ng-repeat="method in resource.methods" ng-click="apiResources.openDocumentation($event, method, resource)">
           <svg class="tab-image tab-{{method.method}}">
             <use xlink:href="img/tab.svg#shape"></use>
           </svg>
@@ -23,7 +23,7 @@
         </a>
       </div>
 
-      <button class="resource-close-btn">
+      <button class="resource-close-btn" ng-click='apiResources.closePopover($event)'>
         Close
       </button>
     </header>

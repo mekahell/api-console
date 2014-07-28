@@ -2,7 +2,7 @@
   'use strict';
 
   RAML.Directives.apiResources = function() {
-    var controller = function($scope) {
+    var controller = function($scope, $element) {
       var self = $scope.apiResources = this;
       this.collapsed = {};
 
@@ -16,6 +16,19 @@
       this.isCollapsed = function(group) {
         var key = self.keyFor(group);
         return self.collapsed[key];
+      };
+
+      this.openDocumentation = function($event, method, resource) {
+        $event.stopPropagation();
+
+        // this.expanded || this.toggleExpansion();
+        console.log('emit:console:expand');
+        $scope.$emit('console:expand', resource, method, $element, angular.element($event.currentTarget));
+      };
+
+      this.closePopover = function($event, method) {
+        $event.stopPropagation();
+        $scope.$emit('console:resource:close', $element);
       };
     };
 

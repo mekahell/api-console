@@ -14,13 +14,17 @@
 
     this.expanded = DataStore.get(generateKey($scope.resource));
 
-    this.openDocumentation = function($event, method) {
+    this.openDocumentation = function($event, method, resource) {
       $event.stopPropagation();
 
       // this.expanded || this.toggleExpansion();
-      angular.element($event.currentTarget).addClass('is-active');
-      console.log('emit:console:expand');
-      $scope.$emit('console:expand', $scope.resource, method, $element);
+      // console.log('emit:console:expand');
+      $scope.$emit('console:expand', resource, method, $element, angular.element($event.currentTarget));
+    };
+
+    this.closePopover = function($event, method) {
+      $event.stopPropagation();
+      $scope.$emit('console:resource:close', $element);
     };
 
     this.toggleExpansion = function() {

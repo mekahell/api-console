@@ -24,10 +24,6 @@
             <section>
               <header class="sidebar-row sidebar-subheader sidebar-subheader-top">
                 <h4 class="sidebar-subhead">Authentication</h4>
-
-                <button class="sidebar-add-btn">
-                  <span class="visuallyhidden">Add custom header</span>
-                </button>
               </header>
 
               <div class="sidebar-row">
@@ -38,13 +34,11 @@
               </div>
             </section>
 
+            <named-parameters heading="Headers" parameters="method.headers"></named-parameters>
+
             <section id="sidebar-uri-parameters">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">URI Parameters</h4>
-
-                <button class="sidebar-add-btn">
-                  <span class="visuallyhidden">Add custom header</span>
-                </button>
               </header>
 
               <div class="sidebar-row">
@@ -71,21 +65,9 @@
             <section id="sidebar-headers">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">Headers</h4>
-
-                <button class="sidebar-add-btn">
-                  <span class="visuallyhidden">Add custom header</span>
-                </button>
               </header>
 
               <div class="sidebar-row">
-                <p class="sidebar-input-container sidebar-input-container-custom">
-                  <button class="sidebar-input-delete"><span class="visuallyhidden">Delete header</span></button>
-                  <label for="custom-header" class="sidebar-label sidebar-label-custom">
-                    <input class="sidebar-custom-input-for-label" placeholder="custom header key">
-                  </label>
-                  <input id="custom-header" class="sidebar-input sidebar-input-custom" placeholder="custom value">
-                </p>
-
                 <p class="sidebar-input-container">
                   <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
                   <span class="sidebar-input-tooltip-container">
@@ -381,12 +363,15 @@
     <div class="resource-panel-primary">
       <div class="resource-panel-subheader resource-panel-primary-row clearfix">
         <div class="resource-panel-description">
-          <p class="description">Whenever humanity seems condemned to heaviness, I think I should fly like Perseus into a different space.</p>
+          <p class="description"></p>
         </div>
 
-        <ul class="flag-list resource-panel-flag-list">
-          <li class="flag"><b>Type:</b> collection</li>
-          <li class="flag"><b>Trait:</b> filterable</li>
+        <ul class="flag-list resource-panel-flag-list" ng-if='resource.traits.length > 0'>
+          <li class="flag" ng-repeat="trait in resource.traits"><b>Trait:</b> {{trait|nameFromParameterizable}}</li>
+        </ul>
+
+        <ul class="flag-list resource-panel-flag-list" ng-if='resource.resourceType'>
+          <li class="flag"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</li>
         </ul>
       </div>
 
@@ -401,92 +386,13 @@
 <div class="resource-panel-primary-row resource-panel-content is-active">
   <h3 class="resource-heading-a">Description</h3>
 
-  <p>List your notifications. List all notifications for the current user, grouped by repository.</p>
+  <p>{{method.description}}</p>
 
-  <section class="resource-section">
-    <h3 class="resource-heading-a">URI Parameters</h3>
+  <named-parameters-documentation ng-if='!isEmpty(resource.uriParametersForDocumentation)' heading='URI Parameters' role='parameter-group' parameters='resource.uriParametersForDocumentation'></named-parameters-documentation >
 
-    <div class="resource-param" id="docs-uri-parameters-mediatypeextension">
-      <h4 class="resource-param-heading">mediaTypeExtension <span class="resource-param-instructional">required, one of (.json)</span></h4>
-      <p>Use .json to specify application/json media type.</p>
+  <named-parameters-documentation ng-if='!isEmpty(method.plainAndParameterizedHeaders)' heading='Headers' role='parameter-group' parameters='method.plainAndParameterizedHeaders'></named-parameters-documentation>
 
-      <p>
-        <span class="resource-param-example"><b>Example:</b> .json</span>
-      </p>
-    </div>
-  </section>
-
-  <section class="resource-section">
-    <h3 class="resource-heading-a">Headers</h3>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">Accept <span class="resource-param-instructional">string</span></h4>
-
-      <p>Is used to set specified media type.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">X-GitHub-Media-Type <span class="resource-param-instructional">string</span></h4>
-
-      <p>You can check the current version of media type in responses.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">X-GitHub-Request-Id <span class="resource-param-instructional">integer</span></h4>
-    </div>
-
-    <div class="resource-param" id="docs-headers-x-ratelimit-limit">
-      <h4 class="resource-param-heading">X-RateLimit-Limit <span class="resource-param-instructional">integer</span></h4>
-    </div>
-
-    <div class="resource-param" id="docs-headers-x-ratelimit-remaining">
-      <h4 class="resource-param-heading">X-RateLimit-Remaining <span class="resource-param-instructional">integer</span></h4>
-    </div>
-
-    <div class="resource-param" id="docs-headers-x-ratelimit-reset">
-      <h4 class="resource-param-heading">X-RateLimit-Reset <span class="resource-param-instructional">integer</span></h4>
-    </div>
-  </section>
-
-  <section class="resource-section" id="docs-query-parameters">
-    <h3 class="resource-heading-a">Query Parameters</h3>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">all <span class="resource-param-instructional">string</span></h4>
-
-      <p>True to show notifications marked as read.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">participating <span class="resource-param-instructional">string</span></h4>
-
-      <p>True to show only notifications in which the user is directly participating or mentioned.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">since <span class="resource-param-instructional">string</span></h4>
-
-      <p>Time filters out any notifications updated before the given time. The time should be passed in as UTC in the ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ. Example: "2012-10-09T23:39:01Z".</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">max_id <span class="resource-param-instructional">integer</span></h4>
-
-      <p>Returns results with an ID less than (that is, older than) or equal to the specified ID.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">since_id <span class="resource-param-instructional">integer</span></h4>
-
-      <p>Returns results with an ID greater than (that is, more recent than) the specified ID. There are limits to the number of Tweets which can be accessed through the API. If the limit of Tweets has occured since the sinceid, the sinceid will be forced to the oldest ID available.</p>
-    </div>
-
-    <div class="resource-param">
-      <h4 class="resource-param-heading">trim_user <span class="resource-param-instructional">one of (0, 1, true, false, t, f)</span></h4>
-
-      <p>When set to either true, t or 1, each tweet returned in a timeline will include a user object including only the status authors numerical ID. Omit this parameter to receive the complete user object.</p>
-    </div>
-  </section>
+  <named-parameters-documentation ng-if='!isEmpty(method.queryParameters)' heading='Query Parameters' role='parameter-group' parameters='method.queryParameters'></named-parameters-documentation>
 </div>
 
 <!-- Response -->

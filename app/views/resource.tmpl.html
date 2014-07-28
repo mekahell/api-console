@@ -9,7 +9,7 @@
     </div>
 
     <div class="tab-list">
-      <a class="tab" href="#" ng-click="resourceView.openDocumentation($event, method)" ng-repeat="method in resource.methods">
+      <a class="tab" href="#" ng-click="resourceView.openDocumentation($event, method, resource)" ng-repeat="method in resource.methods">
         <svg class="tab-image tab-{{method.method}}">
           <use xlink:href="img/tab.svg#shape"></use>
         </svg>
@@ -18,7 +18,7 @@
       </a>
     </div>
 
-    <button class="resource-close-btn">
+    <button class="resource-close-btn" ng-click='resourceView.closePopover($event)'>
       Close
     </button>
   </div>
