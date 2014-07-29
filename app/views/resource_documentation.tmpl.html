@@ -378,12 +378,12 @@
       <div class="resource-panel-tabs clearfix">
 
         <div class="toggle-tabs resource-panel-toggle-tabs">
-          <a href="#" class="toggle-tab is-active">Request</a><a href="#" class="toggle-tab">Response</a>
+          <a href="#" class="toggle-tab is-active" ng-click='showRequest($event)'>Request</a><a href="#" class="toggle-tab" ng-click='showResponse($event)'>Response</a>
         </div>
       </div>
 
       <!-- Request -->
-<div class="resource-panel-primary-row resource-panel-content is-active">
+<div class="resource-request resource-panel-primary-row resource-panel-content is-active">
   <h3 class="resource-heading-a">Description</h3>
 
   <p>{{method.description}}</p>
@@ -396,168 +396,33 @@
 </div>
 
 <!-- Response -->
-<div class="resource-panel-primary-row resource-panel-content">
+<div class="resource-response resource-panel-primary-row resource-panel-content">
   <div class="resource-response-jump">
     <p>
       Jump to status
-      <span class="resource-btns">
-        <button class="resource-btn" href="#code200">200</button>
-        <button class="resource-btn" href="#code403">403</button>
+      <span class="resource-btns" ng-repeat='(responseCode, response) in method.responses'>
+        <a class="resource-btn" href="#code{{responseCode}}">{{responseCode}}</a>
       </span>
     </p>
   </div>
 
-  <section class="resource-section resource-response-section">
-    <a name="code200"></a>
-    <h3 class="resource-heading-a">Status 200</h3>
-
-    <div class="resource-response">
+  <section id="#code{{responseCode}}" class="resource-status-{{responseCode}} resource-section resource-response-section" ng-repeat='(responseCode, response) in method.responses'>
+    <a name="code{{responseCode}}"></a>
+    <h3 class="resource-heading-a">Status {{responseCode}}</h3>
+    <div markdown='response.description'></div>
+    <div class="resource-response" ng-if="response.body" ng-repeat='(contentType, definition) in response.body track by contentType'>
       <h4 class="resource-body-heading">
         Body
-        <span class="flag">application/json</span> <span class="flag">text/plain</span>
+        <span class="flag">{{contentType}}</span>
       </h4>
 
       <span>Example:</span>
-      <pre class="resource-pre"><code>[
-  {
-    "id": 1,
-    "repository": {
-        "id": 1296269,
-        "owner": {
-            "login": "octocat",
-            "id": 1,
-            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-            "gravatar_id": "somehexcode",
-            "url": "https://api.github.com/users/octocat"
-        },
-        "name": "Hello-World",
-        "full_name": "octocat/Hello-World",
-        "description": "This your first repo!",
-        "private": false,
-        "fork": false,
-        "url": "https://api.github.com/repos/octocat/Hello-World",
-        "html_url": "https://github.com/octocat/Hello-World"
-    },
-    "subject": {
-        "title": "Greetings",
-        "url": "https://api.github.com/repos/pengwynn/octokit/issues/123",
-        "latest_comment_url": "https://api.github.com/repos/pengwynn/octokit/issues/comments/123",
-        "type": "Issue"
-    },
-    "reason": "subscribed",
-    "unread": true,
-    "updated_at": "2012-09-25T07:54:41-07:00",
-    "last_read_at": "2012-09-25T07:54:41-07:00",
-    "url": "https://api.github.com/notifications/threads/1"
-  }
-]</code></pre>
+      <pre class="resource-pre"><code>{{definition.example}}</code></pre>
 
-    <p><button class="resource-btn js-schema-toggle">Show Schema</button></p>
-    <pre class="resource-pre resource-pre-toggle"><code>{
-    "$schema": "http://json-schema.org/draft-03/schema",
-    "type": "array",
-    "properties": [
-        {
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "repository": {
-                    "properties": {
-                        "id": {
-                            "type": "integer"
-                        },
-                        "owner": {
-                            "properties": {
-                                "login": {
-                                    "type": "string"
-                                },
-                                "id": {
-                                    "type": "integer"
-                                },
-                                "avatar_url": {
-                                    "type": "string"
-                                },
-                                "gravatar_id": {
-                                    "type": "string"
-                                },
-                                "url": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        "name": {
-                            "type": "string"
-                        },
-                        "full_name": {
-                            "type": "string"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "private": {
-                            "type": "boolean"
-                        },
-                        "fork": {
-                            "type": "boolean"
-                        },
-                        "url": {
-                            "type": "string"
-                        },
-                        "html_url": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "subject": {
-                    "properties": {
-                        "title": {
-                            "type": "string"
-                        },
-                        "url": {
-                            "type": "string"
-                        },
-                        "latest_comment_url": {
-                            "type": "string"
-                        },
-                        "type": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "unread": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "last_read_at": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        }
-    ]
-}</code></pre>
+      <p><button class="resource-btn js-schema-toggle" ng-if="definition.schema" ng-click="showSchema(responseCode)">Show Schema</button></p>
+      <pre class="resource-pre" ng-show="resourceStatus{{responseCode}}"><code>{{definition.schema}}</code></pre>
     </div>
   </section>
-
-  <section class="resource-section">
-    <a name="code403"></a>
-    <h3 class="resource-heading-a">Status 403</h3>
-
-    <div class="resource-response">
-      <p>API rate limit exceeded. See <a href="http://developer.github.com/v3/#rate-limiting">http://developer.github.com/v3/#rate-limiting</a> for details.</p>
-    </div>
 
 </div>
 

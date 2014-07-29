@@ -162,6 +162,26 @@
       $scope.isEmpty = function(params) {
         return RAML.Utils.isEmpty(params);
       };
+
+      $scope.showResponse = function ($event) {
+        angular.element(angular.element($event.currentTarget).parent()[0].querySelectorAll('a')).removeClass('is-active')
+        angular.element($event.currentTarget).addClass('is-active');
+        // Remove querySelectorAll
+        angular.element(document.querySelectorAll('.resource-response')).addClass('is-active');
+        angular.element(document.querySelectorAll('.resource-request')).removeClass('is-active');
+      };
+
+      $scope.showRequest = function ($event) {
+        angular.element(angular.element($event.currentTarget).parent()[0].querySelectorAll('a')).removeClass('is-active')
+        angular.element($event.currentTarget).addClass('is-active');
+        // Remove querySelectorAll
+        angular.element(document.querySelectorAll('.resource-request')).addClass('is-active');
+        angular.element(document.querySelectorAll('.resource-response')).removeClass('is-active');
+      };
+
+      $scope.showSchema = function (responseCode) {
+        $scope['resourceStatus' + responseCode] = !$scope['resourceStatus' + responseCode];
+      };
     };
 
     return {

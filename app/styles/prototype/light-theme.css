@@ -740,7 +740,8 @@ h1, h2, h3, h4, h5, h6, ol, p, ul {
     font-family: Constantia, "Lucida Bright", Lucidabright, "Lucida Serif", Lucida, "DejaVu Serif", "Bitstream Vera Serif', 'Liberation Serif", Georgia, serif
 }
 .resource-panel-primary a {
-    color: #257dcf
+    color: #257dcf;
+    text-decoration: none;
 }
 .resource-panel-primary-row {
     padding: 10px
