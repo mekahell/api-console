@@ -34,41 +34,28 @@
               </div>
             </section>
 
-            <named-parameters heading="Headers" parameters="method.headers"></named-parameters>
-
             <section id="sidebar-uri-parameters">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">URI Parameters</h4>
               </header>
 
               <div class="sidebar-row">
-                <p class="sidebar-method">GET</p>
+                <p class="sidebar-method">{{method.method.toUpperCase()}}</p>
 
                 <div class="sidebar-method-content">
-                  <p class="sidebar-url">https://api.github.com/notifications</p>
+                  <p class="sidebar-url">{{api.baseUri.toString()}}</p>
                 </div>
-
-                <p class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="mediaTypeExtension" class="sidebar-label">mediaTypeExtension</label>
-                  <input id="mediaTypeExtension" class="sidebar-input" value=".json">
-                </p>
               </div>
             </section>
 
-            <section id="sidebar-headers">
+            <section id="sidebar-headers" ng-show="displayHeaders()">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">Headers</h4>
               </header>
 
+
               <div class="sidebar-row">
-                <p class="sidebar-input-container">
+                <p class="sidebar-input-container" ng-repeat="(parameterName, parameter) in method.headers.plain track by parameterName">
                   <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
                   <span class="sidebar-input-tooltip-container">
                     <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
@@ -76,83 +63,19 @@
                       <span>Use .json to specify application/json media type.</span>
                     </span>
                   </span>
-                  <label for="accept" class="sidebar-label">Accept</label>
+                  <label for="accept" class="sidebar-label">{{parameterName}}</label>
                   <input id="accept" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-headers-x-github-media-type" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="X-GitHub-Media-Type" class="sidebar-label">X-GitHub-Media-Type</label>
-                  <input id="X-GitHub-Media-Type" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-headers-x-github-request-id" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="X-GitHub-Request-Id" class="sidebar-label">X-GitHub-Request-Id</label>
-                  <input id="X-GitHub-Request-Id" class="sidebar-input">
-                </p>
-
-                <p class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="X-RateLimit-Limit" class="sidebar-label">X-RateLimit-Limit</label>
-                  <input id="X-RateLimit-Limit" class="sidebar-input">
-                </p>
-
-                <p class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="X-RateLimit-Remaining" class="sidebar-label">X-RateLimit-Remaining</label>
-                  <input id="X-RateLimit-Remaining" class="sidebar-input">
-                </p>
-
-                <p class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="X-RateLimit-Reset" class="sidebar-label">X-RateLimit-Reset</label>
-                  <input id="X-RateLimit-Reset" class="sidebar-input">
                 </p>
               </div>
             </section>
 
-            <section>
+            <section ng-show="displayQueryParameters()">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">Query Parameters</h4>
-
-                <button class="sidebar-add-btn">
-                  <span class="visuallyhidden">Add custom header</span>
-                </button>
               </header>
 
               <div class="sidebar-row">
-                <p id="sidebar-query-parameters-all" class="sidebar-input-container">
+                <p id="sidebar-query-parameters-all" class="sidebar-input-container" ng-repeat="(parameterName, parameter) in method.queryParameters track by parameterName">
                   <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
                   <span class="sidebar-input-tooltip-container">
                     <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
@@ -160,68 +83,8 @@
                       <span>Use .json to specify application/json media type.</span>
                     </span>
                   </span>
-                  <label for="all" class="sidebar-label">all</label>
+                  <label for="all" class="sidebar-label">{{parameterName}}</label>
                   <input id="all" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-query-parameters-participating" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="participating" class="sidebar-label">participating</label>
-                  <input id="participating" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-query-parameters-since" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="since" class="sidebar-label">since</label>
-                  <input id="since" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-query-parameters-max_id" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="max_id" class="sidebar-label">max_id</label>
-                  <input id="max_id" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-query-parameters-since_id" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="since_id" class="sidebar-label">since_id</label>
-                  <input id="since_id" class="sidebar-input">
-                </p>
-
-                <p id="sidebar-query-parameters-trim_user" class="sidebar-input-container">
-                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
-                  <span class="sidebar-input-tooltip-container">
-                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
-                    <span class="sidebar-tooltip-flyout">
-                      <span>Use .json to specify application/json media type.</span>
-                    </span>
-                  </span>
-                  <label for="trim_user" class="sidebar-label">trim_user</label>
-                  <input id="trim_user" class="sidebar-input">
                 </p>
               </div>
             </section>
@@ -232,12 +95,10 @@
               </header>
 
               <div class="sidebar-row">
-                <p class="sidebar-response-item sidebar-request-url">https://api.github.com/notifications?<b>all</b>=<i>true</i></p>
+                <p class="sidebar-response-item sidebar-request-url">{{api.baseUri.toString()}}</p>
 
                 <div class="sidebar-action-group">
-                  <button class="sidebar-action sidebar-action-get">GET</button>
-                  <button class="sidebar-action sidebar-action-clear">Clear</button>
-                  <button class="sidebar-action sidebar-action-reset">Reset</button>
+                  <button class="sidebar-action sidebar-action-get">{{method.method.toUpperCase()}}</button>
                 </div>
               </div>
             </section>

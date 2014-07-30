@@ -102,6 +102,24 @@
           angular.element(document.querySelectorAll('.sidebar')).addClass('is-collapsed');
         }
       };
+
+      $scope.displayHeaders = function() {
+        if ($scope.method) {
+          var parameters = $scope.method.headers || {};
+          parameters.plain = parameters.plain || {};
+          parameters.parameterized = parameters.parameterized || {};
+
+          return Object.keys(parameters.plain).length > 0 || Object.keys(parameters.parameterized).length > 0;
+        }
+      };
+
+      $scope.displayQueryParameters = function() {
+        if ($scope.method) {
+          var parameters = $scope.method.queryParameters || {};
+
+          return Object.keys(parameters).length > 0;
+        }
+      };
     }
 
     return {

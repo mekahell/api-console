@@ -725,7 +725,8 @@ h1, h2, h3, h4, h5, h6, ol, p, ul {
 .resource-panel-primary {
     overflow: hidden;
     width: 100%;
-    font-size: 16px
+    font-size: 16px;
+    min-height: 400px;
 }
 @media only screen and (min-width:960px) {
     .resource-panel-primary {
