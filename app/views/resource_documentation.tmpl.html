@@ -34,17 +34,23 @@
               </div>
             </section>
 
-            <section id="sidebar-uri-parameters">
+            <section id="sidebar-uri-parameters" ng-show="displayUriParameters()">
               <header class="sidebar-row sidebar-subheader">
                 <h4 class="sidebar-subhead">URI Parameters</h4>
               </header>
 
               <div class="sidebar-row">
-                <p class="sidebar-method">{{method.method.toUpperCase()}}</p>
-
-                <div class="sidebar-method-content">
-                  <p class="sidebar-url">{{api.baseUri.toString()}}</p>
-                </div>
+                <p class="sidebar-input-container" ng-repeat="(parameterName, parameter) in resource.uriParametersForDocumentation track by parameterName">
+                  <button class="sidebar-input-reset"><span class="visuallyhidden">Reset field</span></button>
+                  <span class="sidebar-input-tooltip-container">
+                    <button class="sidebar-input-tooltip"><span class="visuallyhidden">Show documentation</span></button>
+                    <span class="sidebar-tooltip-flyout">
+                      <span>Use .json to specify application/json media type.</span>
+                    </span>
+                  </span>
+                  <label for="mediaTypeExtension" class="sidebar-label">{{parameterName}}</label>
+                  <input id="mediaTypeExtension" class="sidebar-input" value=".json">
+                </p>
               </div>
             </section>
 

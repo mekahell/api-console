@@ -120,6 +120,14 @@
           return Object.keys(parameters).length > 0;
         }
       };
+
+      $scope.displayUriParameters = function() {
+        if ($scope.resource) {
+          var parameters = $scope.resource.uriParametersForDocumentation || {};
+
+          return Object.keys(parameters).length > 0;
+        }
+      };
     }
 
     return {
