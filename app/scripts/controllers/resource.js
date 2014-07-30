@@ -22,7 +22,7 @@
       $scope.$emit('console:expand', resource, method, $element, angular.element($event.currentTarget));
     };
 
-    this.closePopover = function($event, method) {
+    this.closePopover = function($event) {
       $event.stopPropagation();
       $scope.$emit('console:resource:close', $element);
     };

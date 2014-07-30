@@ -27,28 +27,8 @@
 
   var apply;
 
-  var TryIt = function($scope, DataStore) {
+  var TryIt = function($scope) {
     $scope.apiClient = this;
-
-    // var baseKey = $scope.resource.toString() + ':' + $scope.method.method;
-    // $scope.baseKey = function() {
-    //   return baseKey;
-    // };
-
-    // var contextKey = baseKey + ':context';
-    // var responseKey = baseKey + ':response';
-
-    // var context = new RAML.Controllers.TryIt.Context($scope.resource, $scope.method);
-    // var oldContext = DataStore.get(contextKey);
-
-    // if (oldContext) {
-    //   context.merge(oldContext);
-    // }
-
-    // this.context = $scope.context = context;
-    // this.response = DataStore.get(responseKey);
-
-    // DataStore.set(contextKey, this.context);
 
     if ($scope.method) {
       this.method = $scope.method;
