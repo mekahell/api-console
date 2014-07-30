@@ -127,7 +127,7 @@
 
         angular.element($li.querySelectorAll('.tab')).removeClass('is-active');
         angular.element($li).removeClass('is-active');
-        angular.element($li.querySelector('.resource')).removeClass('is-active');
+        angular.element($li.querySelectorAll('.resource')).removeClass('is-active');
         $resourcePanel.removeAttr('style');
       });
 

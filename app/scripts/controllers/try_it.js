@@ -30,30 +30,33 @@
   var TryIt = function($scope, DataStore) {
     $scope.apiClient = this;
 
-    var baseKey = $scope.resource.toString() + ':' + $scope.method.method;
-    $scope.baseKey = function() {
-      return baseKey;
-    };
+    // var baseKey = $scope.resource.toString() + ':' + $scope.method.method;
+    // $scope.baseKey = function() {
+    //   return baseKey;
+    // };
 
-    var contextKey = baseKey + ':context';
-    var responseKey = baseKey + ':response';
+    // var contextKey = baseKey + ':context';
+    // var responseKey = baseKey + ':response';
 
-    var context = new RAML.Controllers.TryIt.Context($scope.resource, $scope.method);
-    var oldContext = DataStore.get(contextKey);
+    // var context = new RAML.Controllers.TryIt.Context($scope.resource, $scope.method);
+    // var oldContext = DataStore.get(contextKey);
 
-    if (oldContext) {
-      context.merge(oldContext);
+    // if (oldContext) {
+    //   context.merge(oldContext);
+    // }
+
+    // this.context = $scope.context = context;
+    // this.response = DataStore.get(responseKey);
+
+    // DataStore.set(contextKey, this.context);
+
+    if ($scope.method) {
+      this.method = $scope.method;
+      this.httpMethod = $scope.method.method;
+      this.securitySchemes = $scope.method.securitySchemes();
     }
 
-    this.context = $scope.context = context;
-    this.response = DataStore.get(responseKey);
-
-    DataStore.set(contextKey, this.context);
-
-    this.method = $scope.method;
-    this.httpMethod = $scope.method.method;
     this.parsed = $scope.api;
-    this.securitySchemes = $scope.method.securitySchemes();
     this.keychain = $scope.ramlConsole.keychain;
 
     apply = function() {
@@ -61,7 +64,7 @@
     };
 
     this.setResponse = function(response) {
-      DataStore.set(responseKey, response);
+      // DataStore.set(responseKey, response);
       $scope.apiClient.response = response;
       return response;
     };
