@@ -182,6 +182,26 @@
       $scope.showSchema = function (responseCode) {
         $scope['resourceStatus' + responseCode] = !$scope['resourceStatus' + responseCode];
       };
+
+      $scope.toggleFullScreen = function () {
+        var $sidebar = angular.element(document.querySelectorAll('.sidebar'));
+
+        if (document.querySelectorAll('.sidebar.is-fullscreen').length > 0) {
+          $sidebar.removeClass('is-fullscreen');
+        } else {
+          $sidebar.addClass('is-fullscreen');
+        }
+      };
+
+      $scope.collapseTryIt = function () {
+        if (document.querySelectorAll('.sidebar.is-collapsed').length > 0) {
+          angular.element(document.querySelectorAll('.resource-panel')).removeClass('has-sidebar-fullscreen has-sidebar-collapsed');
+          angular.element(document.querySelectorAll('.sidebar')).removeClass('is-collapsed');
+        } else {
+          angular.element(document.querySelectorAll('.resource-panel')).addClass('has-sidebar-fullscreen has-sidebar-collapsed');
+          angular.element(document.querySelectorAll('.sidebar')).addClass('is-collapsed');
+        }
+      };
     };
 
     return {

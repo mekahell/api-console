@@ -6,7 +6,7 @@
           <header class="sidebar-row sidebar-header">
             <h3 class="sidebar-head">
               Try it
-              <a href="#" class="sidebar-fullscreen-toggle js-sidebar-fullscreen">
+              <a href="#" class="sidebar-fullscreen-toggle js-sidebar-fullscreen" ng-click="toggleFullScreen()">
                 <img src="img/icn-expand.svg" alt="">
                 <span class="visuallyhidden">Expand</span>
               </a>
@@ -343,7 +343,7 @@
 
         <!-- Sidebar control to intermediate view -->
         <div class="sidebar-controls sidebar-controls-collapse js-sidebar-collapse-toggle">
-          <button class="collapse">
+          <button class="collapse" ng-click="collapseTryIt()">
             <span class="discoverable">Try it</span>
             <img src="img/icn-expand.svg" alt="">
           </button>
