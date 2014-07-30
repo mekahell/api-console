@@ -2692,6 +2692,14 @@ RAML.Inspector = (function() {
           return Object.keys(parameters).length > 0;
         }
       };
+
+      $scope.displayUriParameters = function() {
+        if ($scope.resource) {
+          var parameters = $scope.resource.uriParametersForDocumentation || {};
+
+          return Object.keys(parameters).length > 0;
+        }
+      };
     }
 
     return {
@@ -3762,17 +3770,23 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
     "              </div>\n" +
     "            </section>\n" +
     "\n" +
-    "            <section id=\"sidebar-uri-parameters\">\n" +
+    "            <section id=\"sidebar-uri-parameters\" ng-show=\"displayUriParameters()\">\n" +
     "              <header class=\"sidebar-row sidebar-subheader\">\n" +
     "                <h4 class=\"sidebar-subhead\">URI Parameters</h4>\n" +
     "              </header>\n" +
     "\n" +
     "              <div class=\"sidebar-row\">\n" +
-    "                <p class=\"sidebar-method\">{{method.method.toUpperCase()}}</p>\n" +
-    "\n" +
-    "                <div class=\"sidebar-method-content\">\n" +
-    "                  <p class=\"sidebar-url\">{{api.baseUri.toString()}}</p>\n" +
-    "                </div>\n" +
+    "                <p class=\"sidebar-input-container\" ng-repeat=\"(parameterName, parameter) in resource.uriParametersForDocumentation track by parameterName\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"mediaTypeExtension\" class=\"sidebar-label\">{{parameterName}}</label>\n" +
+    "                  <input id=\"mediaTypeExtension\" class=\"sidebar-input\" value=\".json\">\n" +
+    "                </p>\n" +
     "              </div>\n" +
     "            </section>\n" +
     "\n" +
