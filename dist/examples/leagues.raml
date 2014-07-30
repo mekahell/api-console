@@ -1,0 +1,171 @@
+#%RAML 0.8
+title: "Leagues API"
+version: "v1"
+baseUri: "http://172.16.21.159:5812/api"
+schemas:
+    -
+        "league-json": |
+                {
+                    "title": "League Schema",
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+    -
+        "league-xml": |
+                <?xml version="1.0" encoding="ISO-8859-1" ?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                 elementFormDefault="qualified" xmlns="http://mulesoft.com/schemas/soccer"
+                 targetNamespace="http://mulesoft.com/schemas/soccer">
+                <xs:element name="league">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="name" type="xs:string"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+                </xs:schema>
+resourceTypes:
+    -
+        "collection":
+            displayName: "collection"
+traits:
+    -
+        "taxed":
+            displayName: "taxed"
+"/leagues":
+    displayName: "Leagues"
+    description: "World Soccer Leagues"
+    type: "collection"
+    is: ["taxed"]
+    get:
+        responses:
+            "200":
+                body:
+                    "application/json":
+                        example: "."
+                    "text/xml":
+                        example: "."
+    post:
+        body:
+            "application/json":
+                schema: "league-json"
+                example: |
+                    { "name" : "liga criolla" }
+            "text/xml":
+                schema: "league-xml"
+        responses:
+            "201":
+                description: "league created"
+    "/{leagueId}":
+        uriParameters:
+            "leagueId":
+                type: string
+                required: false
+                repeat: false
+                pattern: "[-a-zA-Z0-9+]*"
+                minLength: 1
+                maxLength: 20
+        get:
+            responses:
+                "200":
+                    body:
+                        "application/json":
+                            schema: "league-json"
+                            example: |
+                                { "name" : "liga criolla" }
+                        "text/xml":
+                            schema: "league-xml"
+            is: ["taxed"]
+        put:
+            body:
+                "application/json":
+                    schema: "league-json"
+                    example: |
+                        { "name" : "liga criolla" }
+                "text/xml":
+                    schema: "league-xml"
+            responses:
+                "204":
+                    description: "league modified"
+        delete:
+            responses:
+                "204":
+                    description: "league deleted"
+        "/badge":
+            put:
+                body:
+                    "multipart/form-data":
+                        formParameters:
+                            "description":
+                                type: string
+                                required: false
+                                repeat: false
+                            "image":
+                                type: file
+                                required: false
+                                repeat: false
+                responses:
+                    "200":
+                        body:
+                            "application/json":
+                                example: "."
+            get:
+                responses:
+                    "200":
+                        body:
+                            "*/*":
+                                example: "."
+        "/teams":
+            get:
+                headers:
+                    "preferred":
+                        displayName: "Preferred"
+                        description: "preferred team"
+                        type: string
+                        required: false
+                        repeat: false
+                        default: "BCN"
+                queryParameters:
+                    "offset":
+                        displayName: "Offset"
+                        description: "result set offset"
+                        type: integer
+                        required: false
+                        repeat: false
+                        minimum: 0
+                        default: "0"
+                    "limit":
+                        displayName: "Limit"
+                        description: "result set size"
+                        type: integer
+                        required: false
+                        repeat: false
+                        minimum: 1
+                        maximum: 1E+1
+                        default: "5"
+                responses:
+                    "200":
+                        body:
+                            "application/json":
+                                example: "."
+            "/leader":
+                get:
+documentation:
+    -
+        title: "Leagues"
+        content: |
+            Welcome to the _Leagues API_ Documentation. The _Leagues API_
+            allows you to view a list of football leagues. You may also
+            add or delete leagues to keep the list up to date.
+    -
+        title: "Contact"
+        content: |
+            If you need support, please contact apikit@mulesoft.com.

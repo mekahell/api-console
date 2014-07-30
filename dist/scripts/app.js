@@ -2674,6 +2674,24 @@ RAML.Inspector = (function() {
           angular.element(document.querySelectorAll('.sidebar')).addClass('is-collapsed');
         }
       };
+
+      $scope.displayHeaders = function() {
+        if ($scope.method) {
+          var parameters = $scope.method.headers || {};
+          parameters.plain = parameters.plain || {};
+          parameters.parameterized = parameters.parameterized || {};
+
+          return Object.keys(parameters.plain).length > 0 || Object.keys(parameters.parameterized).length > 0;
+        }
+      };
+
+      $scope.displayQueryParameters = function() {
+        if ($scope.method) {
+          var parameters = $scope.method.queryParameters || {};
+
+          return Object.keys(parameters).length > 0;
+        }
+      };
     }
 
     return {
@@ -3744,41 +3762,28 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
     "              </div>\n" +
     "            </section>\n" +
     "\n" +
-    "            <named-parameters heading=\"Headers\" parameters=\"method.headers\"></named-parameters>\n" +
-    "\n" +
     "            <section id=\"sidebar-uri-parameters\">\n" +
     "              <header class=\"sidebar-row sidebar-subheader\">\n" +
     "                <h4 class=\"sidebar-subhead\">URI Parameters</h4>\n" +
     "              </header>\n" +
     "\n" +
     "              <div class=\"sidebar-row\">\n" +
-    "                <p class=\"sidebar-method\">GET</p>\n" +
+    "                <p class=\"sidebar-method\">{{method.method.toUpperCase()}}</p>\n" +
     "\n" +
     "                <div class=\"sidebar-method-content\">\n" +
-    "                  <p class=\"sidebar-url\">https://api.github.com/notifications</p>\n" +
+    "                  <p class=\"sidebar-url\">{{api.baseUri.toString()}}</p>\n" +
     "                </div>\n" +
-    "\n" +
-    "                <p class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"mediaTypeExtension\" class=\"sidebar-label\">mediaTypeExtension</label>\n" +
-    "                  <input id=\"mediaTypeExtension\" class=\"sidebar-input\" value=\".json\">\n" +
-    "                </p>\n" +
     "              </div>\n" +
     "            </section>\n" +
     "\n" +
-    "            <section id=\"sidebar-headers\">\n" +
+    "            <section id=\"sidebar-headers\" ng-show=\"displayHeaders()\">\n" +
     "              <header class=\"sidebar-row sidebar-subheader\">\n" +
     "                <h4 class=\"sidebar-subhead\">Headers</h4>\n" +
     "              </header>\n" +
     "\n" +
+    "\n" +
     "              <div class=\"sidebar-row\">\n" +
-    "                <p class=\"sidebar-input-container\">\n" +
+    "                <p class=\"sidebar-input-container\" ng-repeat=\"(parameterName, parameter) in method.headers.plain track by parameterName\">\n" +
     "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
     "                  <span class=\"sidebar-input-tooltip-container\">\n" +
     "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
@@ -3786,83 +3791,19 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
     "                      <span>Use .json to specify application/json media type.</span>\n" +
     "                    </span>\n" +
     "                  </span>\n" +
-    "                  <label for=\"accept\" class=\"sidebar-label\">Accept</label>\n" +
+    "                  <label for=\"accept\" class=\"sidebar-label\">{{parameterName}}</label>\n" +
     "                  <input id=\"accept\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-headers-x-github-media-type\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"X-GitHub-Media-Type\" class=\"sidebar-label\">X-GitHub-Media-Type</label>\n" +
-    "                  <input id=\"X-GitHub-Media-Type\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-headers-x-github-request-id\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"X-GitHub-Request-Id\" class=\"sidebar-label\">X-GitHub-Request-Id</label>\n" +
-    "                  <input id=\"X-GitHub-Request-Id\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"X-RateLimit-Limit\" class=\"sidebar-label\">X-RateLimit-Limit</label>\n" +
-    "                  <input id=\"X-RateLimit-Limit\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"X-RateLimit-Remaining\" class=\"sidebar-label\">X-RateLimit-Remaining</label>\n" +
-    "                  <input id=\"X-RateLimit-Remaining\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"X-RateLimit-Reset\" class=\"sidebar-label\">X-RateLimit-Reset</label>\n" +
-    "                  <input id=\"X-RateLimit-Reset\" class=\"sidebar-input\">\n" +
     "                </p>\n" +
     "              </div>\n" +
     "            </section>\n" +
     "\n" +
-    "            <section>\n" +
+    "            <section ng-show=\"displayQueryParameters()\">\n" +
     "              <header class=\"sidebar-row sidebar-subheader\">\n" +
     "                <h4 class=\"sidebar-subhead\">Query Parameters</h4>\n" +
-    "\n" +
-    "                <button class=\"sidebar-add-btn\">\n" +
-    "                  <span class=\"visuallyhidden\">Add custom header</span>\n" +
-    "                </button>\n" +
     "              </header>\n" +
     "\n" +
     "              <div class=\"sidebar-row\">\n" +
-    "                <p id=\"sidebar-query-parameters-all\" class=\"sidebar-input-container\">\n" +
+    "                <p id=\"sidebar-query-parameters-all\" class=\"sidebar-input-container\" ng-repeat=\"(parameterName, parameter) in method.queryParameters track by parameterName\">\n" +
     "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
     "                  <span class=\"sidebar-input-tooltip-container\">\n" +
     "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
@@ -3870,68 +3811,8 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
     "                      <span>Use .json to specify application/json media type.</span>\n" +
     "                    </span>\n" +
     "                  </span>\n" +
-    "                  <label for=\"all\" class=\"sidebar-label\">all</label>\n" +
+    "                  <label for=\"all\" class=\"sidebar-label\">{{parameterName}}</label>\n" +
     "                  <input id=\"all\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-query-parameters-participating\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"participating\" class=\"sidebar-label\">participating</label>\n" +
-    "                  <input id=\"participating\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-query-parameters-since\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"since\" class=\"sidebar-label\">since</label>\n" +
-    "                  <input id=\"since\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-query-parameters-max_id\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"max_id\" class=\"sidebar-label\">max_id</label>\n" +
-    "                  <input id=\"max_id\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-query-parameters-since_id\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"since_id\" class=\"sidebar-label\">since_id</label>\n" +
-    "                  <input id=\"since_id\" class=\"sidebar-input\">\n" +
-    "                </p>\n" +
-    "\n" +
-    "                <p id=\"sidebar-query-parameters-trim_user\" class=\"sidebar-input-container\">\n" +
-    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
-    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
-    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
-    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
-    "                      <span>Use .json to specify application/json media type.</span>\n" +
-    "                    </span>\n" +
-    "                  </span>\n" +
-    "                  <label for=\"trim_user\" class=\"sidebar-label\">trim_user</label>\n" +
-    "                  <input id=\"trim_user\" class=\"sidebar-input\">\n" +
     "                </p>\n" +
     "              </div>\n" +
     "            </section>\n" +
@@ -3942,12 +3823,10 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
     "              </header>\n" +
     "\n" +
     "              <div class=\"sidebar-row\">\n" +
-    "                <p class=\"sidebar-response-item sidebar-request-url\">https://api.github.com/notifications?<b>all</b>=<i>true</i></p>\n" +
+    "                <p class=\"sidebar-response-item sidebar-request-url\">{{api.baseUri.toString()}}</p>\n" +
     "\n" +
     "                <div class=\"sidebar-action-group\">\n" +
-    "                  <button class=\"sidebar-action sidebar-action-get\">GET</button>\n" +
-    "                  <button class=\"sidebar-action sidebar-action-clear\">Clear</button>\n" +
-    "                  <button class=\"sidebar-action sidebar-action-reset\">Reset</button>\n" +
+    "                  <button class=\"sidebar-action sidebar-action-get\">{{method.method.toUpperCase()}}</button>\n" +
     "                </div>\n" +
     "              </div>\n" +
     "            </section>\n" +
