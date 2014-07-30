@@ -225,6 +225,12 @@ module.exports = function (grunt) {
             cwd:    'app/vendor/open-sans',
             src:    '*',
             dest:   'dist/fonts/'
+          },
+          {
+            expand: true,
+            cwd:    'app/img',
+            src:    '*',
+            dest:   'dist/img/'
           }
         ]
       }

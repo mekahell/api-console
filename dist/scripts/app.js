@@ -1397,11 +1397,17 @@ RAML.Inspector = (function() {
 
     this.expanded = DataStore.get(generateKey($scope.resource));
 
-    this.openDocumentation = function($event, method) {
+    this.openDocumentation = function($event, method, resource) {
       $event.stopPropagation();
 
-      this.expanded || this.toggleExpansion();
-      $scope.$emit('console:expand', $scope.resource, method, $element);
+      // this.expanded || this.toggleExpansion();
+      // console.log('emit:console:expand');
+      $scope.$emit('console:expand', resource, method, $element, angular.element($event.currentTarget));
+    };
+
+    this.closePopover = function($event) {
+      $event.stopPropagation();
+      $scope.$emit('console:resource:close', $element);
     };
 
     this.toggleExpansion = function() {
@@ -1523,33 +1529,16 @@ RAML.Inspector = (function() {
 
   var apply;
 
-  var TryIt = function($scope, DataStore) {
+  var TryIt = function($scope) {
     $scope.apiClient = this;
 
-    var baseKey = $scope.resource.toString() + ':' + $scope.method.method;
-    $scope.baseKey = function() {
-      return baseKey;
-    };
-
-    var contextKey = baseKey + ':context';
-    var responseKey = baseKey + ':response';
-
-    var context = new RAML.Controllers.TryIt.Context($scope.resource, $scope.method);
-    var oldContext = DataStore.get(contextKey);
-
-    if (oldContext) {
-      context.merge(oldContext);
+    if ($scope.method) {
+      this.method = $scope.method;
+      this.httpMethod = $scope.method.method;
+      this.securitySchemes = $scope.method.securitySchemes();
     }
 
-    this.context = $scope.context = context;
-    this.response = DataStore.get(responseKey);
-
-    DataStore.set(contextKey, this.context);
-
-    this.method = $scope.method;
-    this.httpMethod = $scope.method.method;
     this.parsed = $scope.api;
-    this.securitySchemes = $scope.method.securitySchemes();
     this.keychain = $scope.ramlConsole.keychain;
 
     apply = function() {
@@ -1557,7 +1546,7 @@ RAML.Inspector = (function() {
     };
 
     this.setResponse = function(response) {
-      DataStore.set(responseKey, response);
+      // DataStore.set(responseKey, response);
       $scope.apiClient.response = response;
       return response;
     };
@@ -1882,7 +1871,7 @@ RAML.Inspector = (function() {
   'use strict';
 
   RAML.Directives.apiResources = function() {
-    var controller = function($scope) {
+    var controller = function($scope, $element) {
       var self = $scope.apiResources = this;
       this.collapsed = {};
 
@@ -1896,6 +1885,19 @@ RAML.Inspector = (function() {
       this.isCollapsed = function(group) {
         var key = self.keyFor(group);
         return self.collapsed[key];
+      };
+
+      this.openDocumentation = function($event, method, resource) {
+        $event.stopPropagation();
+
+        // this.expanded || this.toggleExpansion();
+        console.log('emit:console:expand');
+        $scope.$emit('console:expand', resource, method, $element, angular.element($event.currentTarget));
+      };
+
+      this.closePopover = function($event) {
+        $event.stopPropagation();
+        $scope.$emit('console:resource:close', $element);
       };
     };
 
@@ -2571,94 +2573,15 @@ RAML.Inspector = (function() {
 (function() {
   'use strict';
 
-  function calculateContainerPosition(container, consoleContainer, rect) {
-    container.style.top = consoleContainer.scrollTop + rect.top - consoleContainer.offsetTop + 'px';
-    container.style.bottom = consoleContainer.scrollTop + rect.bottom + 'px';
-    container.style.height = rect.bottom - rect.top + 'px';
-  }
-
-  function calculateContainerHeight(container, consoleContainer) {
-    container.css('height', consoleContainer[0].clientHeight - 10 + 'px');
-    container[0].style.top = consoleContainer[0].scrollTop + 5 + 'px';
-  }
-
-  function createPopover(element) {
-    var consoleContainer = angular.element(document.body).find('raml-console').parent(),
-        resourceList = angular.element(document.getElementById('raml-console')),
-        placeholder = angular.element(element[0].querySelector('.resource-placeholder')),
-        container = angular.element(element[0].querySelector('.resource-container')),
-        rect;
-
-    return {
-      open: function($scope, $resourceEl, resource, method) {
-        $scope.resource = resource;
-
-        consoleContainer.css('overflow', 'hidden');
-        placeholder.css('height', resourceList[0].scrollHeight + 'px');
-        container.addClass('grow-expansion-animation');
-
-        setTimeout(function() {
-          rect = $resourceEl[0].getBoundingClientRect();
-          calculateContainerPosition(container[0], consoleContainer[0], rect);
-
-          setTimeout(function() {
-            placeholder.addClass('masked');
-            calculateContainerHeight(container, consoleContainer);
-            $scope.selectedMethod = method;
-            $scope.$digest();
-          });
-        });
-      },
-
-      close: function($scope) {
-        calculateContainerPosition(container[0], consoleContainer[0], rect);
-        setTimeout(function() {
-          placeholder.removeClass('masked');
-
-          setTimeout(function() {
-            container.removeClass('grow-expansion-animation');
-            consoleContainer.css('overflow', 'auto');
-
-            $scope.$apply('resource = undefined');
-            $scope.$apply('selectedMethod = undefined');
-          }, 200);
-        });
-      },
-
-      resize: function() {
-        calculateContainerHeight(container, consoleContainer);
-      }
-    };
-  }
-
-  RAML.Directives.resourceDocumentation = function($rootScope, $window, DataStore) {
+  RAML.Directives.resourceDocumentation = function($rootScope, $window) {
     var popover;
     angular.element($window).bind('resize', function() {
       if (popover) {
         popover.resize();
       }
     });
-    function prepare($scope, $element, $resourceEl, resource, method) {
-      $scope.selectMethod = function(method) {
-        DataStore.set(resource.toString() + ':method', method.method);
-        $scope.selectedMethod = method;
-        $scope.keyBase = resource.toString() +':' + method.method;
-      };
 
-      $scope.closePopover = function(e) {
-        e.preventDefault();
-
-        DataStore.set(resource.toString() + ':method', undefined);
-        popover.close($scope);
-        popover = undefined;
-      };
-
-      popover = createPopover($element);
-      popover.open($scope, $resourceEl, resource, method);
-      $scope.selectMethod(method);
-    }
-
-    function Controller($scope, $element) {
+    function Controller($scope) {
       var receipt;
 
       $rootScope.$on('console:resource:destroyed', function(event, resource) {
@@ -2670,29 +2593,87 @@ RAML.Inspector = (function() {
         }
       });
 
-      $rootScope.$on('console:resource:rendered', function(event, resource, $resourceEl) {
-        var methodName = DataStore.get(resource.toString() + ':method');
-        if (methodName) {
-          var method = resource.methods.filter(function(method) {
-            return method.method === methodName;
-          })[0] || resource.methods[0];
+      $rootScope.$on('console:resource:close', function close(event, $resourceEl) {
+        var $li = $resourceEl[0];
+        var $resourcePanel = angular.element($li.querySelector('.resource-panel'));
 
-          if (method) {
-            if (receipt && $scope.resource && $scope.resource.toString() === resource.toString()) {
-              clearTimeout(receipt);
-              $scope.resource = resource;
-              $scope.selectedMethod = method;
-            } else {
-              prepare($scope, $element, $resourceEl, resource, method);
-            }
-          }
+        angular.element($li.querySelectorAll('.tab')).removeClass('is-active');
+        angular.element($li).removeClass('is-active');
+        angular.element($li.querySelectorAll('.resource')).removeClass('is-active');
+        $resourcePanel.removeAttr('style');
+      });
+
+      $rootScope.$on('console:expand', function(event, resource, method, $resourceEl, $current) {
+        console.log('on:console:expand');
+
+        // Ensures only one resource documentation at a time
+        var root = angular.element(document.querySelector('.resource-list-root'))[0];
+        angular.element(root.querySelectorAll('.resource-panel')).removeAttr('style');
+        angular.element(root.querySelectorAll('.tab')).removeClass('is-active');
+        angular.element(root.querySelectorAll('.resource')).removeClass('is-active');
+
+        var $li = $current.parent().parent().parent()[0];
+        var $resourcePanel = angular.element($li.querySelector('.resource-panel'));
+
+        $resourcePanel.css('overflow', 'visible');
+        $resourcePanel.css('display', 'block');
+        $resourcePanel.css('height', 'auto');
+        $resourcePanel.css('margin-top', '0px');
+        $resourcePanel.css('margin-bottom', '0px');
+        $resourcePanel.css('padding-top', '0px');
+        $resourcePanel.css('padding-bottom', '0px');
+
+        angular.element($resourceEl[0].querySelectorAll('.tab')).removeClass('is-active');
+        $current.addClass('is-active');
+        angular.element($li).addClass('is-active');
+        angular.element($li.querySelector('.resource')).addClass('is-active');
+        $scope.method = method;
+        $scope.resource = resource;
+      });
+
+      $scope.isEmpty = function(params) {
+        return RAML.Utils.isEmpty(params);
+      };
+
+      $scope.showResponse = function ($event) {
+        angular.element(angular.element($event.currentTarget).parent()[0].querySelectorAll('a')).removeClass('is-active');
+        angular.element($event.currentTarget).addClass('is-active');
+        // Remove querySelectorAll
+        angular.element(document.querySelectorAll('.resource-response')).addClass('is-active');
+        angular.element(document.querySelectorAll('.resource-request')).removeClass('is-active');
+      };
+
+      $scope.showRequest = function ($event) {
+        angular.element(angular.element($event.currentTarget).parent()[0].querySelectorAll('a')).removeClass('is-active');
+        angular.element($event.currentTarget).addClass('is-active');
+        // Remove querySelectorAll
+        angular.element(document.querySelectorAll('.resource-request')).addClass('is-active');
+        angular.element(document.querySelectorAll('.resource-response')).removeClass('is-active');
+      };
+
+      $scope.showSchema = function (responseCode) {
+        $scope['resourceStatus' + responseCode] = !$scope['resourceStatus' + responseCode];
+      };
+
+      $scope.toggleFullScreen = function () {
+        var $sidebar = angular.element(document.querySelectorAll('.sidebar'));
+
+        if (document.querySelectorAll('.sidebar.is-fullscreen').length > 0) {
+          $sidebar.removeClass('is-fullscreen');
+        } else {
+          $sidebar.addClass('is-fullscreen');
         }
-      });
+      };
 
-      $rootScope.$on('console:expand', function(event, resource, method, $resourceEl) {
-        prepare($scope, $element, $resourceEl, resource, method);
-      });
-
+      $scope.collapseTryIt = function () {
+        if (document.querySelectorAll('.sidebar.is-collapsed').length > 0) {
+          angular.element(document.querySelectorAll('.resource-panel')).removeClass('has-sidebar-fullscreen has-sidebar-collapsed');
+          angular.element(document.querySelectorAll('.sidebar')).removeClass('is-collapsed');
+        } else {
+          angular.element(document.querySelectorAll('.resource-panel')).addClass('has-sidebar-fullscreen has-sidebar-collapsed');
+          angular.element(document.querySelectorAll('.sidebar')).addClass('is-collapsed');
+        }
+      };
     }
 
     return {
@@ -2701,7 +2682,8 @@ RAML.Inspector = (function() {
       controller: Controller,
       scope: {
         api: '=',
-        ramlConsole: '='
+        ramlConsole: '=',
+        ngShow: '='
       }
     };
   };
@@ -3296,14 +3278,48 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
   'use strict';
 
   $templateCache.put('views/api_resources.tmpl.html',
-    "<div id=\"raml-console-api-reference\" role=\"resources\">\n" +
-    "  <div class=\"toggle-resource-groups\">\n" +
-    "    <a ng-click='apiResources.toggleAll(false)' role=\"expand-all\">Expand</a>\n" +
-    "    <span>/</span>\n" +
-    "    <a ng-click='apiResources.toggleAll(true)' role=\"collapse-all\">Collapse</a>\n" +
-    "    <span>All</span>\n" +
-    "  </div>\n" +
+    "<ol class=\"resource-list resource-list-root\" id=\"raml-console-api-reference\" role=\"resources\">\n" +
+    "  <li role=\"resource-group\" class=\"resource-list-item\" ng-repeat=\"resourceGroup in api.resourceGroups\">\n" +
+    "    <header class=\"resource resource-root clearfix\" ng-init=\"resource = resourceGroup[0]\">\n" +
+    "      <div class=\"resource-path-container\">\n" +
+    "        <button class=\"resource-root-toggle\" ng-show=\"resourceGroup.length > 1\">\n" +
+    "          <span class=\"visuallyhidden\">See Nested Resources</span>\n" +
+    "        </button>\n" +
     "\n" +
+    "        <h2 class=\"resource-heading resource-heading-large\">\n" +
+    "          <span ng-repeat='segment in resource.pathSegments' class=\"resource-path-active\">{{segment.toString()}}</span>\n" +
+    "        </h2>\n" +
+    "\n" +
+    "        <span ng-if='resource.resourceType' class=\"flag resource-heading-flag resource-heading-flag-root\"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <div class=\"tab-list\">\n" +
+    "        <a class=\"tab\" href=\"#\" ng-repeat=\"method in resource.methods\" ng-click=\"apiResources.openDocumentation($event, method, resource)\">\n" +
+    "          <svg class=\"tab-image tab-{{method.method}}\">\n" +
+    "            <use xlink:href=\"img/tab.svg#shape\"></use>\n" +
+    "          </svg>\n" +
+    "\n" +
+    "          <span class=\"tab-label\">{{method.method.toUpperCase()}}</span>\n" +
+    "        </a>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <button class=\"resource-close-btn\" ng-click='apiResources.closePopover($event)'>\n" +
+    "        Close\n" +
+    "      </button>\n" +
+    "    </header>\n" +
+    "\n" +
+    "    <resource-documentation api=\"api\" raml-console=\"ramlConsole\"></resource-documentation>\n" +
+    "\n" +
+    "    <ol class=\"resource-list\">\n" +
+    "      <resource ng-repeat=\"resource in resourceGroup\" ng-show=\"!$first\"></resource>\n" +
+    "    </ol>\n" +
+    "  </li>\n" +
+    "</ol>\n"
+  );
+
+
+  $templateCache.put('views/api_resources.tmpl.old.html',
+    "<div id=\"raml-console-api-reference\" role=\"resources\">\n" +
     "  <div collapsible collapsed='apiResources.collapsed[apiResources.keyFor(resourceGroup)]' role=\"resource-group\" class=\"resource-group\" ng-repeat=\"resourceGroup in api.resourceGroups\">\n" +
     "    <i collapsible-toggle class=\"fa\" ng-class=\"{'fa-caret-right': collapsed, 'fa-caret-down': !collapsed}\"></i>\n" +
     "\n" +
@@ -3466,31 +3482,28 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
 
 
   $templateCache.put('views/named_parameters.tmpl.html',
-    "<section class=\"documentation-section\" ng-show=\"displayParameters()\">\n" +
-    "  <fieldset class='labelled-inline bordered'>\n" +
-    "    <h2>{{heading}}</h2>\n" +
-    "    <parameter-fields parameters=\"parameters\"></parameter-fields>\n" +
-    "  </fieldset>\n" +
+    "<section id=\"sidebar-headers\" ng-show=\"displayParameters()\">\n" +
+    "  <header class=\"sidebar-row sidebar-subheader\">\n" +
+    "    <h4 class=\"sidebar-subhead\">{{heading}}</h4>\n" +
+    "  </header>\n" +
+    "\n" +
+    "  <parameter-fields parameters=\"parameters\"></parameter-fields>\n" +
     "</section>\n"
   );
 
 
   $templateCache.put('views/named_parameters_documentation.tmpl.html',
-    "<section class='named-parameters'>\n" +
-    "  <h2>{{heading}}</h2>\n" +
-    "  <section role='parameter' class='parameter' ng-repeat='parameter in parameters'>\n" +
-    "    <div ng-repeat=\"definition in parameter\">\n" +
-    "      <h4 class='strip-whitespace'>\n" +
-    "        <span role=\"display-name\">{{definition.displayName}}</span>\n" +
-    "        <span class=\"constraints\">{{namedParametersDocumentation.constraints(definition)}}</span>\n" +
-    "      </h4>\n" +
+    "<section class=\"resource-section\">\n" +
+    "  <h3 class=\"resource-heading-a\">{{heading}}</h3>\n" +
     "\n" +
-    "      <div class=\"info\">\n" +
-    "        <div role=\"description\" markdown=\"definition.description\"></div>\n" +
-    "        <div ng-if=\"definition.example\"><span class=\"label\">Example:</span> <code class=\"well\" role=\"example\">{{definition.example}}</code></div>\n" +
-    "      </div>\n" +
+    "  <div class=\"resource-param\" ng-repeat='parameter in parameters'>\n" +
+    "    <div ng-repeat=\"definition in parameter\">\n" +
+    "      <h4 class=\"resource-param-heading\">{{definition.displayName}} <span class=\"resource-param-instructional\">{{namedParametersDocumentation.constraints(definition)}}</span></h4>\n" +
+    "\n" +
+    "      <span markdown=\"definition.description\"></span>\n" +
+    "      <div ng-if=\"definition.example\"><span class=\"label\">Example:</span> <code class=\"well\" role=\"example\">{{definition.example}}</code></div>\n" +
     "    </div>\n" +
-    "  </section>\n" +
+    "  </div>\n" +
     "</section>\n"
   );
 
@@ -3545,32 +3558,19 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
 
 
   $templateCache.put('views/parameter_fields.tmpl.html',
-    "<fieldset>\n" +
-    "  <div ng-repeat=\"(parameterName, parameter) in parameters.plain track by parameterName\">\n" +
-    "    <div class=\"parameter-field\" ng-repeat=\"definition in parameter.definitions\" ng-show=\"parameter.isSelected(definition)\">\n" +
-    "      <div repeatable=\"definition.repeat\" repeatable-model=\"parameters.values[parameterName]\">\n" +
-    "        <div class=\"control-group\">\n" +
-    "          <label for=\"{{parameterName}}\">\n" +
-    "            <span class=\"required\" ng-if=\"definition.required\">*</span>\n" +
-    "            {{definition.displayName}}\n" +
-    "          </label>\n" +
-    "          <parameter-field name='parameterName' model='repeatableModel[$index]' definition='definition' ></parameter-field>\n" +
-    "          <repeatable-remove></repeatable-remove>\n" +
-    "          <repeatable-add></repeatable-add>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <div class=\"parameter-type\" ng-if=\"parameter.hasMultipleTypes()\">\n" +
-    "      as\n" +
-    "      <select class=\"form-control\" ng-model=\"parameter.selected\" ng-options=\"definition.type as definition.type for definition in parameter.definitions\"></select>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "\n" +
-    "  <div class=\"parameter-factory\" ng-repeat='(name, _) in parameters.parameterized'>\n" +
+    "<div class=\"sidebar-row\" ng-repeat=\"(parameterName, parameter) in parameters.plain track by parameterName\">\n" +
+    "  <p class=\"sidebar-input-container\" ng-repeat=\"definition in parameter.definitions\" ng-show=\"parameter.isSelected(definition)\">\n" +
+    "    <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "    <span class=\"sidebar-input-tooltip-container\">\n" +
+    "      <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "      <span class=\"sidebar-tooltip-flyout\">\n" +
+    "        <span>Use .json to specify application/json media type.</span>\n" +
+    "      </span>\n" +
+    "    </span>\n" +
+    "    <parameter-field name='parameterName' model='repeatableModel[$index]' definition='definition' ></parameter-field>\n" +
     "    <parameterized-parameter parameter-name=\"name\" parameters=\"parameters\"></parameterized-parameter>\n" +
-    "  </div>\n" +
-    "</fieldset>\n"
+    "  </p>\n" +
+    "</div>\n"
   );
 
 
@@ -3587,13 +3587,22 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
 
 
   $templateCache.put('views/raml-console.tmpl.html',
+    "<main class=\"container primary\" role=\"api-console\" id=\"raml-console\">\n" +
+    "  <h1 class=\"title\">{{api.title}}</h1>\n" +
+    "\n" +
+    "  <div ng-if='api.resourceGroups.length > 0'>\n" +
+    "    <api-resources ng-if='api.resourceGroups.length > 0'></api-resources>\n" +
+    "  </div>\n" +
+    "</main>\n"
+  );
+
+
+  $templateCache.put('views/raml-console.tmpl.old.html',
     "<article role=\"api-console\" id=\"raml-console\">\n" +
     "  <resource-documentation api=\"api\" raml-console=\"ramlConsole\"></resource-documentation>\n" +
     "  <div role=\"error\" ng-if=\"parseError\">\n" +
     "    {{parseError}}\n" +
     "  </div>\n" +
-    "\n" +
-    "  <header id=\"raml-console-api-title\">{{api.title}}</header>\n" +
     "\n" +
     "  <nav id=\"raml-console-main-nav\" ng-if='ramlConsole.showRootDocumentation()' ng-switch='ramlConsole.view'>\n" +
     "    <a class=\"btn\" ng-switch-when='rootDocumentation' role=\"view-api-reference\" ng-click='ramlConsole.gotoView(\"apiReference\")'>&larr; API Reference</a>\n" +
@@ -3628,6 +3637,36 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
 
 
   $templateCache.put('views/resource.tmpl.html',
+    "<li class=\"resource-list-item\">\n" +
+    "  <div class=\"resource clearfix\">\n" +
+    "    <div class=\"resource-path-container\">\n" +
+    "      <h3 class=\"resource-heading\">\n" +
+    "        <span ng-repeat='segment in resource.pathSegments' ng-class=\"{'resource-path-active':$last}\">{{segment.toString()}}</span>\n" +
+    "      </h3>\n" +
+    "\n" +
+    "      <span class=\"flag resource-heading-flag\"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</span>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"tab-list\">\n" +
+    "      <a class=\"tab\" href=\"#\" ng-click=\"resourceView.openDocumentation($event, method, resource)\" ng-repeat=\"method in resource.methods\">\n" +
+    "        <svg class=\"tab-image tab-{{method.method}}\">\n" +
+    "          <use xlink:href=\"img/tab.svg#shape\"></use>\n" +
+    "        </svg>\n" +
+    "\n" +
+    "        <span class=\"tab-label\">{{method.method.toUpperCase()}}</span>\n" +
+    "      </a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <button class=\"resource-close-btn\" ng-click='resourceView.closePopover($event)'>\n" +
+    "      Close\n" +
+    "    </button>\n" +
+    "  </div>\n" +
+    "  <resource-documentation api=\"api\" raml-console=\"ramlConsole\"></resource-documentation>\n" +
+    "</li>\n"
+  );
+
+
+  $templateCache.put('views/resource.tmpl.old.html',
     "<div class=\"resource-placeholder\" role=\"resource-placeholder\">\n" +
     "  <div class=\"resource-container\">\n" +
     "    <div ng-class=\"{expanded: resourceView.expanded || selectedMethod}\" class='resource' role=\"resource\" ng-click='resourceView.toggleExpansion()'>\n" +
@@ -3669,6 +3708,442 @@ angular.module('ramlConsoleApp').run(['$templateCache', function($templateCache)
 
 
   $templateCache.put('views/resource_documentation.tmpl.html',
+    "<div class=\"resource-panel\">\n" +
+    "  <div class=\"resource-panel-wrapper\">\n" +
+    "    <div class=\"sidebar\">\n" +
+    "      <div class=\"sidebar-flex-wrapper\">\n" +
+    "        <div class=\"sidebar-content\">\n" +
+    "          <header class=\"sidebar-row sidebar-header\">\n" +
+    "            <h3 class=\"sidebar-head\">\n" +
+    "              Try it\n" +
+    "              <a href=\"#\" class=\"sidebar-fullscreen-toggle js-sidebar-fullscreen\" ng-click=\"toggleFullScreen()\">\n" +
+    "                <img src=\"img/icn-expand.svg\" alt=\"\">\n" +
+    "                <span class=\"visuallyhidden\">Expand</span>\n" +
+    "              </a>\n" +
+    "            </h3>\n" +
+    "          </header>\n" +
+    "\n" +
+    "          <!-- Show more -->\n" +
+    "          <div class=\"sidebar-show-more\">\n" +
+    "            <p>\n" +
+    "              more <img src=\"img/icn-chevron-down.svg\" alt=\"\">\n" +
+    "            </p>\n" +
+    "          </div>\n" +
+    "\n" +
+    "          <div class=\"sidebar-content-wrapper\">\n" +
+    "            <section>\n" +
+    "              <header class=\"sidebar-row sidebar-subheader sidebar-subheader-top\">\n" +
+    "                <h4 class=\"sidebar-subhead\">Authentication</h4>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <div class=\"toggle-group sidebar-toggle-group\">\n" +
+    "                  <button class=\"toggle toggle-mini is-active\">Anonymous</button>\n" +
+    "                  <button class=\"toggle toggle-mini\">oauth_2_0</button>\n" +
+    "                </div>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <named-parameters heading=\"Headers\" parameters=\"method.headers\"></named-parameters>\n" +
+    "\n" +
+    "            <section id=\"sidebar-uri-parameters\">\n" +
+    "              <header class=\"sidebar-row sidebar-subheader\">\n" +
+    "                <h4 class=\"sidebar-subhead\">URI Parameters</h4>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <p class=\"sidebar-method\">GET</p>\n" +
+    "\n" +
+    "                <div class=\"sidebar-method-content\">\n" +
+    "                  <p class=\"sidebar-url\">https://api.github.com/notifications</p>\n" +
+    "                </div>\n" +
+    "\n" +
+    "                <p class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"mediaTypeExtension\" class=\"sidebar-label\">mediaTypeExtension</label>\n" +
+    "                  <input id=\"mediaTypeExtension\" class=\"sidebar-input\" value=\".json\">\n" +
+    "                </p>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <section id=\"sidebar-headers\">\n" +
+    "              <header class=\"sidebar-row sidebar-subheader\">\n" +
+    "                <h4 class=\"sidebar-subhead\">Headers</h4>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <p class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"accept\" class=\"sidebar-label\">Accept</label>\n" +
+    "                  <input id=\"accept\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-headers-x-github-media-type\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"X-GitHub-Media-Type\" class=\"sidebar-label\">X-GitHub-Media-Type</label>\n" +
+    "                  <input id=\"X-GitHub-Media-Type\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-headers-x-github-request-id\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"X-GitHub-Request-Id\" class=\"sidebar-label\">X-GitHub-Request-Id</label>\n" +
+    "                  <input id=\"X-GitHub-Request-Id\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"X-RateLimit-Limit\" class=\"sidebar-label\">X-RateLimit-Limit</label>\n" +
+    "                  <input id=\"X-RateLimit-Limit\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"X-RateLimit-Remaining\" class=\"sidebar-label\">X-RateLimit-Remaining</label>\n" +
+    "                  <input id=\"X-RateLimit-Remaining\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"X-RateLimit-Reset\" class=\"sidebar-label\">X-RateLimit-Reset</label>\n" +
+    "                  <input id=\"X-RateLimit-Reset\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <section>\n" +
+    "              <header class=\"sidebar-row sidebar-subheader\">\n" +
+    "                <h4 class=\"sidebar-subhead\">Query Parameters</h4>\n" +
+    "\n" +
+    "                <button class=\"sidebar-add-btn\">\n" +
+    "                  <span class=\"visuallyhidden\">Add custom header</span>\n" +
+    "                </button>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <p id=\"sidebar-query-parameters-all\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"all\" class=\"sidebar-label\">all</label>\n" +
+    "                  <input id=\"all\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-query-parameters-participating\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"participating\" class=\"sidebar-label\">participating</label>\n" +
+    "                  <input id=\"participating\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-query-parameters-since\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"since\" class=\"sidebar-label\">since</label>\n" +
+    "                  <input id=\"since\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-query-parameters-max_id\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"max_id\" class=\"sidebar-label\">max_id</label>\n" +
+    "                  <input id=\"max_id\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-query-parameters-since_id\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"since_id\" class=\"sidebar-label\">since_id</label>\n" +
+    "                  <input id=\"since_id\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "\n" +
+    "                <p id=\"sidebar-query-parameters-trim_user\" class=\"sidebar-input-container\">\n" +
+    "                  <button class=\"sidebar-input-reset\"><span class=\"visuallyhidden\">Reset field</span></button>\n" +
+    "                  <span class=\"sidebar-input-tooltip-container\">\n" +
+    "                    <button class=\"sidebar-input-tooltip\"><span class=\"visuallyhidden\">Show documentation</span></button>\n" +
+    "                    <span class=\"sidebar-tooltip-flyout\">\n" +
+    "                      <span>Use .json to specify application/json media type.</span>\n" +
+    "                    </span>\n" +
+    "                  </span>\n" +
+    "                  <label for=\"trim_user\" class=\"sidebar-label\">trim_user</label>\n" +
+    "                  <input id=\"trim_user\" class=\"sidebar-input\">\n" +
+    "                </p>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <section>\n" +
+    "              <header class=\"sidebar-row sidebar-subheader\">\n" +
+    "                <h4 class=\"sidebar-subhead\">Request URI</h4>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <p class=\"sidebar-response-item sidebar-request-url\">https://api.github.com/notifications?<b>all</b>=<i>true</i></p>\n" +
+    "\n" +
+    "                <div class=\"sidebar-action-group\">\n" +
+    "                  <button class=\"sidebar-action sidebar-action-get\">GET</button>\n" +
+    "                  <button class=\"sidebar-action sidebar-action-clear\">Clear</button>\n" +
+    "                  <button class=\"sidebar-action sidebar-action-reset\">Reset</button>\n" +
+    "                </div>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <section>\n" +
+    "              <header class=\"sidebar-row sidebar-header\">\n" +
+    "                <h3 class=\"sidebar-head sidebar-head-expand\">\n" +
+    "                  <button class=\"sidebar-expand-btn is-collapsed js-toggle-request-metadata\">\n" +
+    "                    Request\n" +
+    "                  </button>\n" +
+    "                </h3>\n" +
+    "                <button class=\"resource-btn\">Copy</button>\n" +
+    "              </header>\n" +
+    "              <div class=\"sidebar-request-metadata\">\n" +
+    "\n" +
+    "                <div class=\"sidebar-row\">\n" +
+    "                  <h3 class=\"sidebar-response-head\">Headers</h3>\n" +
+    "                  <div class=\"sidebar-response-item\">\n" +
+    "                    <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>Accept:</b> <br>bytes\n" +
+    "                    </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>X-GitHub-Media-Type:</b> <br>keep-alive\n" +
+    "                    </p>\n" +
+    "                    <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>X-GitHub-Request-Id:</b> <br>gzip\n" +
+    "                    </p>\n" +
+    "                    <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>X-RateLimit-Limit:</b> <br>86\n" +
+    "                    </p>\n" +
+    "                    <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>X-RateLimit-Remaining:</b> <br>application/json; charset=utf-8\n" +
+    "                    </p>\n" +
+    "                    <p class=\"sidebar-response-metadata\">\n" +
+    "                      <b>X-RateLimit-Reset:</b> <br>Thu, 05 Jun 2014 02:09:20 GMT\n" +
+    "                    </p>\n" +
+    "                  </div>\n" +
+    "\n" +
+    "                  <h3 class=\"sidebar-response-head sidebar-response-head-pre\">Body</h3>\n" +
+    "  <pre class=\"sidebar-pre\"><code>{\n" +
+    "    \"body\": [\n" +
+    "      {\n" +
+    "        \"message\": \"This is an example\",\n" +
+    "        \"example\": 215\n" +
+    "      }\n" +
+    "    ]\n" +
+    "  }</code></pre>\n" +
+    "                </div>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "\n" +
+    "            <section>\n" +
+    "              <header class=\"sidebar-row sidebar-header\">\n" +
+    "                <h3 class=\"sidebar-head\">Response</h3>\n" +
+    "              </header>\n" +
+    "\n" +
+    "              <div class=\"sidebar-row\">\n" +
+    "                <h3 class=\"sidebar-response-head\">Status</h3>\n" +
+    "                <p class=\"sidebar-response-item\">200</p>\n" +
+    "\n" +
+    "                <h3 class=\"sidebar-response-head\">Headers</h3>\n" +
+    "                <div class=\"sidebar-response-item\">\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>accept-ranges:</b> <br>bytes\n" +
+    "                  </p>\n" +
+    "                <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>connection:</b> <br>keep-alive\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>content-encoding:</b> <br>gzip\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>content-length:</b> <br>86\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>content-type:</b> <br>application/json; charset=utf-8\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>date:</b> <br>Thu, 05 Jun 2014 02:09:20 GMT\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>strict-transport-security:</b> <br>max-age=631138519\n" +
+    "                  </p>\n" +
+    "                  <p class=\"sidebar-response-metadata\">\n" +
+    "                    <b>x-varnish-cache:</b> <br>MISS\n" +
+    "                  </p>\n" +
+    "                  </p>\n" +
+    "                </div>\n" +
+    "\n" +
+    "                <h3 class=\"sidebar-response-head sidebar-response-head-pre\">Body</h3>\n" +
+    "<pre class=\"sidebar-pre\"><code>{\n" +
+    "  \"errors\": [\n" +
+    "    {\n" +
+    "      \"message\": \"Bad Authentication data\",\n" +
+    "      \"code\": 215\n" +
+    "    }\n" +
+    "  ]\n" +
+    "}</code></pre>\n" +
+    "              </div>\n" +
+    "            </section>\n" +
+    "          </div>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <!-- Sidebar control to intermediate view -->\n" +
+    "        <div class=\"sidebar-controls sidebar-controls-collapse js-sidebar-collapse-toggle\">\n" +
+    "          <button class=\"collapse\" ng-click=\"collapseTryIt()\">\n" +
+    "            <span class=\"discoverable\">Try it</span>\n" +
+    "            <img src=\"img/icn-expand.svg\" alt=\"\">\n" +
+    "          </button>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <!-- Sidebar control to full-screen/full-width view -->\n" +
+    "        <div class=\"sidebar-controls sidebar-controls-fullscreen js-sidebar-fullscreen\">\n" +
+    "          <button class=\"collapse\">\n" +
+    "            <span class=\"discoverable\">Try it</span>\n" +
+    "            <img src=\"img/icn-expand.svg\" alt=\"\">\n" +
+    "          </button>\n" +
+    "        </div>\n" +
+    "\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"resource-panel-primary\">\n" +
+    "      <div class=\"resource-panel-subheader resource-panel-primary-row clearfix\">\n" +
+    "        <div class=\"resource-panel-description\">\n" +
+    "          <p class=\"description\"></p>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <ul class=\"flag-list resource-panel-flag-list\" ng-if='resource.traits.length > 0'>\n" +
+    "          <li class=\"flag\" ng-repeat=\"trait in resource.traits\"><b>Trait:</b> {{trait|nameFromParameterizable}}</li>\n" +
+    "        </ul>\n" +
+    "\n" +
+    "        <ul class=\"flag-list resource-panel-flag-list\" ng-if='resource.resourceType'>\n" +
+    "          <li class=\"flag\"><b>Type:</b> {{resource.resourceType|nameFromParameterizable}}</li>\n" +
+    "        </ul>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <div class=\"resource-panel-tabs clearfix\">\n" +
+    "\n" +
+    "        <div class=\"toggle-tabs resource-panel-toggle-tabs\">\n" +
+    "          <a href=\"#\" class=\"toggle-tab is-active\" ng-click='showRequest($event)'>Request</a><a href=\"#\" class=\"toggle-tab\" ng-click='showResponse($event)'>Response</a>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <!-- Request -->\n" +
+    "<div class=\"resource-request resource-panel-primary-row resource-panel-content is-active\">\n" +
+    "  <h3 class=\"resource-heading-a\">Description</h3>\n" +
+    "\n" +
+    "  <p>{{method.description}}</p>\n" +
+    "\n" +
+    "  <named-parameters-documentation ng-if='!isEmpty(resource.uriParametersForDocumentation)' heading='URI Parameters' role='parameter-group' parameters='resource.uriParametersForDocumentation'></named-parameters-documentation >\n" +
+    "\n" +
+    "  <named-parameters-documentation ng-if='!isEmpty(method.plainAndParameterizedHeaders)' heading='Headers' role='parameter-group' parameters='method.plainAndParameterizedHeaders'></named-parameters-documentation>\n" +
+    "\n" +
+    "  <named-parameters-documentation ng-if='!isEmpty(method.queryParameters)' heading='Query Parameters' role='parameter-group' parameters='method.queryParameters'></named-parameters-documentation>\n" +
+    "</div>\n" +
+    "\n" +
+    "<!-- Response -->\n" +
+    "<div class=\"resource-response resource-panel-primary-row resource-panel-content\">\n" +
+    "  <div class=\"resource-response-jump\">\n" +
+    "    <p>\n" +
+    "      Jump to status\n" +
+    "      <span class=\"resource-btns\" ng-repeat='(responseCode, response) in method.responses'>\n" +
+    "        <a class=\"resource-btn\" href=\"#code{{responseCode}}\">{{responseCode}}</a>\n" +
+    "      </span>\n" +
+    "    </p>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <section id=\"#code{{responseCode}}\" class=\"resource-status-{{responseCode}} resource-section resource-response-section\" ng-repeat='(responseCode, response) in method.responses'>\n" +
+    "    <a name=\"code{{responseCode}}\"></a>\n" +
+    "    <h3 class=\"resource-heading-a\">Status {{responseCode}}</h3>\n" +
+    "    <div markdown='response.description'></div>\n" +
+    "    <div class=\"resource-response\" ng-if=\"response.body\" ng-repeat='(contentType, definition) in response.body track by contentType'>\n" +
+    "      <h4 class=\"resource-body-heading\">\n" +
+    "        Body\n" +
+    "        <span class=\"flag\">{{contentType}}</span>\n" +
+    "      </h4>\n" +
+    "\n" +
+    "      <span>Example:</span>\n" +
+    "      <pre class=\"resource-pre\"><code>{{definition.example}}</code></pre>\n" +
+    "\n" +
+    "      <p><button class=\"resource-btn js-schema-toggle\" ng-if=\"definition.schema\" ng-click=\"showSchema(responseCode)\">Show Schema</button></p>\n" +
+    "      <pre class=\"resource-pre\" ng-show=\"resourceStatus{{responseCode}}\"><code>{{definition.schema}}</code></pre>\n" +
+    "    </div>\n" +
+    "  </section>\n" +
+    "\n" +
+    "</div>\n" +
+    "\n" +
+    "\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n"
+  );
+
+
+  $templateCache.put('views/resource_documentation.tmpl.old.html',
     "<div class=\"resource-placeholder resource-popover mask-resource-list\" ng-show=\"resource\">\n" +
     "  <div class=\"resource-container\">\n" +
     "    <div class=\"resource expanded\" ng-if=\"resource\">\n" +
