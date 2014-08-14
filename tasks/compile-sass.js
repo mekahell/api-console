@@ -4,7 +4,7 @@ var autoprefixer = require('gulp-autoprefixer');
 var cssmin       = require('gulp-cssmin');
 
 gulp.task('compile-sass', function() {
-  gulp.src('./app/app.scss')
+  gulp.src('./src/app/app.scss')
     .pipe(sass({
       errLogToConsole: true
     }))
